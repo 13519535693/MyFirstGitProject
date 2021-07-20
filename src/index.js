@@ -1,6 +1,7 @@
-import React from 'react';
+import React,{useState} from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+
 function Square(props)  {
       return (
         <button 
@@ -11,121 +12,89 @@ function Square(props)  {
         </button>
       );
   }
-  
-  class Board extends React.Component {
-    //   constructor(props){ //因为在需要恢复历史步骤的过程中，需要将Board删掉square中的state，
-    //       super(props);   //将Board组件的状态提升到Game组件里
-    //       this.state = {
-    //           squares : Array(9).fill(null),
-    //           xIsNext:true,
-    //       };
-    //   }
-    renderSquare(i) {
-      return (<Square 
-                value={this.props.squares[i]} 
-                onClick={() => this.props.onClick(i)}
-             />
-      );
-    }
-  
-    render() {
-      return (
-        <div>
+
+function Board(props){
+   function renderSquare(i) {
+    return (<Square 
+              value={props.squares[i]} 
+              onClick={() => props.onClick(i)}
+           />
+    );
+  };
+  return(
+    <div>
           <div className="board-row">
-            {this.renderSquare(0)}
-            {this.renderSquare(1)}
-            {this.renderSquare(2)}
+            {renderSquare(0)}
+            {renderSquare(1)}
+            {renderSquare(2)}
           </div>
           <div className="board-row">
-            {this.renderSquare(3)}
-            {this.renderSquare(4)}
-            {this.renderSquare(5)}
+            {renderSquare(3)}
+            {renderSquare(4)}
+            {renderSquare(5)}
           </div>
           <div className="board-row">
-            {this.renderSquare(6)}
-            {this.renderSquare(7)}
-            {this.renderSquare(8)}
+            {renderSquare(6)}
+            {renderSquare(7)}
+            {renderSquare(8)}
           </div>
         </div>
-      );
-    }
-  }
+  )
+}
   
-  class Game extends React.Component {
-    // constructor(props){
-    //     super(props),
-    //      this.state = {
-    //          history:[{
-    //              squares:Array(9).fill(null),
-    //          }],
-    //          stepNumber:0,//这个值代表我们当前正在查看哪一项历史记录
-    //          xIsNext:true
-    //      };  
-    // }
-    constructor(props) {
-        super(props);
-        this.state = {
-          history: [
-            {
-              squares: Array(9).fill(null)
-            }
-          ],
-          stepNumber: 0,
-          xIsNext: true
-        };
-      }
+  function Game(){
+    const [history,setHistory] = useState([{squares:Array(9).fill(null)}]);
+    const [stepNumber,setStepNumber] = useState(0);
+    const [xIsNext,setxISNext] = useState(true);
 
-    handleClick(i){
-        const history = this.state.history.slice(0, this.state.stepNumber + 1);
-        const current = history[history.length-1]; 
-        const squares = current.squares.slice();
-        if(calculateWinner(squares) || squares[i]){
-            return;
-        }
-        squares[i] = this.state.xIsNext ? 'X':'O';
-        this.setState({
-            history:history.concat([{squares:squares}]),
-            stepNumber:history.length,
-            xIsNext:!this.state.xIsNext,
-          });
+    function handleClick(i){
+       const history2 = history.slice(0,stepNumber+1);
+       const current = history2[history2.length-1];
+       const squares = current.squares.slice();
+       if(calculateWinner(squares) || squares[i]){
+         return;
+       }
+       squares[i] = xIsNext ? 'X':'O';
+       setHistory(history2.concat([{squares:squares}]));
+       setStepNumber(history2.length);
+       setxISNext(!xIsNext);
+    }
+
+    function jumpTo(step){
+       setStepNumber(step);
+       setxISNext((step%2) ===0);
     }
     
-    jumpTo(step){
-        this.setState({
-            stepNumber:step,
-            xIsNext:(step % 2 ) === 0,
-        });
-    }
-    render() {
-      //更新 Game 组件的 render 函数，使用最新一次历史记录来确定并展示游戏的状态
-      const history = this.state.history;
-      const current = history[this.state.stepNumber];
-      const winner = calculateWinner(current.squares);
+    //更新 Game 组件的 render 函数，使用最新一次历史记录来确定并展示游戏的状态
+    // const history= history;
+    // const current = history[stepNumber];
+    // const winner = calculateWinner(current.squares);
+       const winner = calculateWinner(history[stepNumber].squares);  //可以直接写为这样
 
-      const moves = history.map((step,move) => {
-          const desc = move ? 
+    const moves = history.map((step,move)=>{
+      const desc = move ? 
              'Go to move #' + move:
              'Go to game start';
              return(
                  <li key={move}>
-                     <button onClick={()=>this.jumpTo(move)}>{desc}</button>
+                     <button onClick={()=>jumpTo(move)}>{desc}</button>
                  </li>
              );
-      });
+    });
 
-      let status;
-      if(winner){
-          status = 'Winner: ' + winner;
-      }else{
-          status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-      }
+    let status;
+    if(winner){
+      status = 'Winner: ' + winner;
+    }else{
+      status = 'Next player: ' + (xIsNext ? 'X' : 'O');
+    }
 
-      return (
-        <div className="game">
+    return(
+      <div className="game">
           <div className="game-board">
             <Board 
-              squares={current.squares}
-              onClick={i => this.handleClick(i)}
+              squares={history[stepNumber].squares}
+              onClick={i => handleClick(i)}
             />
           </div>
           <div className="game-info">
@@ -133,9 +102,9 @@ function Square(props)  {
             <ol>{moves}</ol>
           </div>
         </div>
-      );
-    }
+    )
   }
+
 
   // ========================================
   
