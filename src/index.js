@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useMemo,useState,useCallback} from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
@@ -47,8 +47,8 @@ function Board(props){
     const [stepNumber,setStepNumber] = useState(0);
     const [xIsNext,setxISNext] = useState(true);
 
-    function handleClick(i){
-       const history2 = history.slice(0,stepNumber+1);
+    const handleClick = useCallback((i)=>{
+      const history2 = history.slice(0,stepNumber+1);
        const current = history2[history2.length-1];
        const squares = current.squares.slice();
        if(calculateWinner(squares) || squares[i]){
@@ -58,7 +58,24 @@ function Board(props){
        setHistory(history2.concat([{squares:squares}]));
        setStepNumber(history2.length);
        setxISNext(!xIsNext);
-    }
+    },[history,stepNumber,xIsNext])
+     
+    const squares2 = useMemo(()=>{
+      return (history[stepNumber].squares)
+    },[history,stepNumber])
+
+    // function handleClick(i){
+    //    const history2 = history.slice(0,stepNumber+1);
+    //    const current = history2[history2.length-1];
+    //    const squares = current.squares.slice();
+    //    if(calculateWinner(squares) || squares[i]){
+    //      return;
+    //    }
+    //    squares[i] = xIsNext ? 'X':'O';
+    //    setHistory(history2.concat([{squares:squares}]));
+    //    setStepNumber(history2.length);
+    //    setxISNext(!xIsNext);
+    // }
 
     function jumpTo(step){
        setStepNumber(step);
@@ -93,7 +110,7 @@ function Board(props){
       <div className="game">
           <div className="game-board">
             <Board 
-              squares={history[stepNumber].squares}
+              squares={squares2}
               onClick={i => handleClick(i)}
             />
           </div>
